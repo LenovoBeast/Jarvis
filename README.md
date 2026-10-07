@@ -3,6 +3,10 @@
 Everything you need to build a local, voice-enabled personal AI assistant — a setup guide, an
 interactive setup script, and a UI design for the assistant itself.
 
+**Read the guide online:** https://lenovobeast.github.io/Jarvis/
+
+**Try the interface prototype:** https://lenovobeast.github.io/Jarvis/jarvis-ui-prototype.html
+
 All the HTML is self-contained. No build step, no dependencies, no local server. Open a file in a
 browser and it works.
 
@@ -12,17 +16,18 @@ browser and it works.
 
 | File | What it is |
 |---|---|
-| [`index.html`](index.html) | The setup guide, as a website |
+| [`index.html`](index.html) | The setup guide, as a website — [live](https://lenovobeast.github.io/Jarvis/) |
 | [`setup-jarvis.sh`](setup-jarvis.sh) | Guided setup — macOS, Linux, Git Bash |
 | [`setup-jarvis.ps1`](setup-jarvis.ps1) | Guided setup — Windows PowerShell |
-| [`jarvis-ui-prototype.html`](jarvis-ui-prototype.html) | Interactive prototype of the Jarvis interface |
+| [`jarvis-ui-prototype.html`](jarvis-ui-prototype.html) | Interactive prototype of the Jarvis interface — [live](https://lenovobeast.github.io/Jarvis/jarvis-ui-prototype.html) |
 
 ---
 
 ## Quick start
 
-**Read the guide first** if you want to understand what's happening: open `index.html` in a
-browser. It has a progress checklist that remembers where you got to.
+**Read the guide first** if you want to understand what's happening — either
+[online](https://lenovobeast.github.io/Jarvis/) or by opening `index.html` in a browser. It has a
+progress checklist that remembers where you got to.
 
 **Or let the script do it.** It checks what you have installed, clones the agent repo you pick,
 sets up a Python virtual environment, and scaffolds your config files.
@@ -73,7 +78,7 @@ downward*, as far as the task demands:
 Resting (tray glyph) -> Ask (640x72) -> Answer (card) -> Act (rail + approval)
 ```
 
-**Try it:**
+**Try it:** [open the prototype](https://lenovobeast.github.io/Jarvis/jarvis-ui-prototype.html)
 
 | Input | What happens |
 |---|---|
@@ -86,7 +91,7 @@ Resting (tray glyph) -> Ask (640x72) -> Answer (card) -> Act (rail + approval)
 
 ---
 
-## Running the guide locally
+## Running locally
 
 No tooling required:
 
