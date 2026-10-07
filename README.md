@@ -32,16 +32,23 @@ progress checklist that remembers where you got to.
 **Or let the script do it.** It checks what you have installed, clones the agent repo you pick,
 sets up a Python virtual environment, and scaffolds your config files.
 
+No need to clone first — fetch the script directly:
+
 ```bash
 # macOS / Linux / Git Bash
+curl -fsSL https://raw.githubusercontent.com/LenovoBeast/Jarvis/main/setup-jarvis.sh -o setup-jarvis.sh
 chmod +x setup-jarvis.sh
 ./setup-jarvis.sh
 ```
 
 ```powershell
 # Windows
+irm https://raw.githubusercontent.com/LenovoBeast/Jarvis/main/setup-jarvis.ps1 -OutFile setup-jarvis.ps1
 powershell -ExecutionPolicy Bypass -File .\setup-jarvis.ps1
 ```
+
+Already have the repo? Skip the download and run `./setup-jarvis.sh` (or `.\setup-jarvis.ps1`) from
+the folder.
 
 Both accept the same flags:
 
