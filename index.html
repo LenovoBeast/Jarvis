@@ -37,15 +37,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 24px);-webkit-text-size-adjust:100%}
 body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--sans);
-  font-size:16px;
-  line-height:1.7;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;
 }
 ::selection{background:rgba(34,211,238,.3);color:#fff}
+button{font-family:inherit}
 
 /* ============ AMBIENT BACKDROP ============ */
 .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
@@ -69,7 +65,7 @@ body{
   box-shadow:0 0 14px rgba(34,211,238,.9);transition:width .08s linear}
 
 /* ============ NAV ============ */
-nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:90;
+nav.top{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:90;
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   background:rgba(5,8,15,.72);border-bottom:1px solid var(--line)}
 .nav-in{max-width:1400px;margin:0 auto;height:100%;padding:0 28px;display:flex;align-items:center;gap:18px}
@@ -115,7 +111,7 @@ h1 .grad{background:linear-gradient(112deg,#fff 8%,var(--cyan-soft) 42%,var(--bl
 
 /* ============ LAYOUT ============ */
 .wrap{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 28px 120px;
-  display:grid;grid-template-columns:242px minmax(0,1fr);gap:56px;align-items:start}
+  display:grid;grid-template-columns:256px minmax(0,1fr);gap:56px;align-items:start}
 aside{position:sticky;top:calc(var(--nav-h) + 28px);max-height:calc(100vh - var(--nav-h) - 56px);
   overflow-y:auto;padding-right:6px;scrollbar-width:thin}
 aside::-webkit-scrollbar{width:5px}
@@ -124,11 +120,31 @@ aside::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:9px}
   color:var(--text-faint);padding:0 12px;margin-bottom:14px}
 .toc a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;text-decoration:none;
   color:var(--text-faint);font-size:13.5px;line-height:1.35;transition:.16s;border-left:2px solid transparent}
-.toc a .n{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);min-width:19px;transition:.16s}
+.toc a .n{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);min-width:19px;transition:.16s;flex:none}
 .toc a:hover{color:var(--text-dim);background:rgba(120,190,255,.06)}
 .toc a.on{color:var(--cyan-soft);background:rgba(34,211,238,.09);border-left-color:var(--cyan)}
 .toc a.on .n{color:var(--cyan)}
+.toc a .tick{display:none;flex:none;color:var(--green)}
+.toc a.done .n{display:none}
+.toc a.done .tick{display:block}
+.toc a.done{color:var(--text-dim)}
 main{min-width:0}
+
+/* ============ SIDEBAR PROGRESS ============ */
+.prog-box{border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:linear-gradient(160deg,rgba(34,211,238,.08),rgba(120,190,255,.02));
+  padding:13px 14px;margin:0 6px 18px}
+.prog-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.prog-top .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-faint)}
+.prog-top .val{font-family:var(--mono);font-size:12.5px;color:var(--cyan-soft);font-weight:500}
+.prog-track{height:5px;border-radius:99px;background:rgba(120,190,255,.12);overflow:hidden}
+.prog-fill{height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--cyan),var(--blue));
+  box-shadow:0 0 10px rgba(34,211,238,.7);transition:width .4s cubic-bezier(.2,.8,.3,1)}
+.prog-reset{margin-top:10px;background:none;border:none;color:var(--text-faint);
+  font-size:11px;font-family:var(--mono);cursor:pointer;padding:2px 0;transition:.16s}
+.prog-reset:hover{color:var(--amber)}
 
 /* ============ SECTIONS ============ */
 section{margin-bottom:72px;scroll-margin-top:calc(var(--nav-h) + 24px)}
@@ -142,6 +158,10 @@ p{color:var(--text-dim);margin-bottom:15px}
 p strong,li strong{color:var(--text);font-weight:600}
 a{color:var(--cyan-soft);text-decoration:none;border-bottom:1px solid rgba(103,232,249,.28);transition:.16s}
 a:hover{color:#fff;border-bottom-color:#fff}
+a.ext{white-space:nowrap}
+a.ext::after{content:"\2197";font-size:.82em;margin-left:3px;opacity:.75;
+  display:inline-block;transition:transform .16s}
+a.ext:hover::after{transform:translate(2px,-2px)}
 code{font-family:var(--mono);font-size:.855em;background:rgba(120,190,255,.1);
   border:1px solid var(--line);padding:2px 6px;border-radius:5px;color:var(--cyan-soft);
   overflow-wrap:anywhere;word-break:break-word}
@@ -152,23 +172,51 @@ code{font-family:var(--mono);font-size:.855em;background:rgba(120,190,255,.1);
 .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(34,211,238,.5),transparent)}
 .card + .card{margin-top:18px}
-.card.flush{padding:0}
 
 /* ============ STEP ============ */
 .step{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
-  background:linear-gradient(165deg,var(--panel),var(--bg-2));position:relative}
+  background:linear-gradient(165deg,var(--panel),var(--bg-2));position:relative;
+  transition:border-color .25s ease}
 .step + .step{margin-top:22px}
 .step::before{content:"";position:absolute;top:0;left:0;bottom:0;width:2px;
-  background:linear-gradient(180deg,var(--cyan),var(--blue) 45%,transparent)}
+  background:linear-gradient(180deg,var(--cyan),var(--blue) 45%,transparent);transition:background .3s ease}
+.step.complete{border-color:rgba(52,211,153,.3)}
+.step.complete::before{background:linear-gradient(180deg,var(--green),rgba(52,211,153,.3) 60%,transparent)}
 .step-head{display:flex;gap:20px;align-items:flex-start;padding:26px 30px 22px}
 .step-num{flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
   font-family:var(--mono);font-size:15px;font-weight:600;color:var(--cyan-soft);
   background:linear-gradient(150deg,rgba(34,211,238,.19),rgba(76,141,255,.07));
-  border:1px solid rgba(34,211,238,.32);box-shadow:inset 0 0 22px rgba(34,211,238,.14)}
+  border:1px solid rgba(34,211,238,.32);box-shadow:inset 0 0 22px rgba(34,211,238,.14);
+  transition:.25s ease}
+.step.complete .step-num{color:var(--green);
+  background:linear-gradient(150deg,rgba(52,211,153,.2),rgba(52,211,153,.05));
+  border-color:rgba(52,211,153,.4);box-shadow:inset 0 0 22px rgba(52,211,153,.16)}
 .step-head .t{flex:1;min-width:0}
 .step-head h3{font-size:1.24rem;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
 .step-head .desc{color:var(--text-dim);font-size:14.5px;margin:0}
 .step-body{padding:0 30px 28px 96px}
+
+/* ============ STEP FOOTER NAV ============ */
+.step-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 30px;border-top:1px solid var(--line);background:rgba(120,190,255,.028)}
+.step-foot .spacer{flex:1}
+.snav{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;
+  color:var(--text-dim);background:none;border:1px solid var(--line);border-radius:9px;
+  padding:7px 13px;cursor:pointer;text-decoration:none;transition:.16s}
+.snav:hover{color:var(--text);border-color:var(--line-strong);background:rgba(120,190,255,.07)}
+.snav.primary{color:var(--cyan-soft);border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.08)}
+.snav.primary:hover{background:rgba(34,211,238,.16);color:#fff}
+.snav[disabled]{opacity:.35;pointer-events:none}
+.done-btn{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;
+  color:var(--text-dim);background:none;border:1px solid var(--line);border-radius:9px;
+  padding:7px 14px;cursor:pointer;transition:.18s}
+.done-btn:hover{color:var(--text);border-color:var(--line-strong);background:rgba(120,190,255,.07)}
+.done-btn .box{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--text-faint);
+  display:grid;place-items:center;flex:none;transition:.18s}
+.done-btn .box svg{opacity:0;transition:.18s}
+.done-btn.on{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.1)}
+.done-btn.on .box{border-color:var(--green);background:var(--green)}
+.done-btn.on .box svg{opacity:1}
 
 /* ============ PROMPT BLOCK ============ */
 .prompt{background:#070c15;border:1px solid var(--line-strong);border-radius:var(--radius-sm);
@@ -193,6 +241,8 @@ code{font-family:var(--mono);font-size:.855em;background:rgba(120,190,255,.1);
   white-space:pre-wrap;word-break:break-word;flex:1}
 .prompt-body .txt .url{color:var(--violet)}
 .prompt-body .txt .ph{color:var(--amber)}
+.prompt-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-faint);margin:24px 0 -6px}
 
 /* ============ LISTS ============ */
 ul.clean{list-style:none;margin:14px 0}
@@ -246,7 +296,6 @@ ul.check li::before{content:"";left:4px;top:10px;width:5px;height:9px;border:sol
 .t-q .arw{margin-left:auto;flex:none;color:var(--text-faint);transition:.25s;font-size:12px}
 .t-item.open .t-q .arw{transform:rotate(90deg);color:var(--cyan)}
 .js .t-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
-.js .t-item.open .t-a{overflow:hidden}
 .t-a-in{padding:0 24px 22px 62px;color:var(--text-dim);font-size:14.5px}
 .t-a-in p:last-child{margin-bottom:0}
 
@@ -262,11 +311,12 @@ ul.check li::before{content:"";left:4px;top:10px;width:5px;height:9px;border:sol
 .vs-mid{font-family:var(--mono);font-size:12px;color:var(--text-faint);text-align:center;
   border:1px solid var(--line);border-radius:99px;padding:7px 12px;background:var(--panel)}
 
-.why-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:26px}
+.why-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:26px}
 .why{display:flex;gap:12px;padding:16px 17px;border:1px solid var(--line);border-radius:var(--radius-sm);
   background:rgba(120,190,255,.035);font-size:14px;color:var(--text-dim)}
 .why svg{flex:none;margin-top:3px}
 .why strong{color:var(--text);display:block;margin-bottom:2px;font-size:14.5px}
+.why.span2{grid-column:span 2}
 
 /* ============ NEXT STEPS ============ */
 .nsteps{display:grid;gap:14px}
@@ -278,13 +328,23 @@ ul.check li::before{content:"";left:4px;top:10px;width:5px;height:9px;border:sol
 .nstep h4{font-size:15px;font-weight:650;margin-bottom:5px;color:var(--text)}
 .nstep p{margin:0;font-size:14px;color:var(--text-dim)}
 
+/* ============ BACK TO TOP ============ */
+#toTop{position:fixed;right:26px;bottom:26px;z-index:80;width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;
+  background:rgba(11,18,32,.9);border:1px solid var(--line-strong);color:var(--text-dim);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease,color .16s,border-color .16s}
+#toTop.on{opacity:1;transform:none;pointer-events:auto}
+#toTop:hover{color:var(--cyan-soft);border-color:rgba(34,211,238,.5)}
+
 /* ============ FOOTER ============ */
 footer{position:relative;z-index:1;border-top:1px solid var(--line);
   background:linear-gradient(180deg,transparent,rgba(34,211,238,.045));padding:52px 28px 62px;text-align:center}
 footer .fnote{max-width:640px;margin:0 auto 20px;color:var(--text-dim);font-size:14.5px}
 footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);letter-spacing:.09em}
 
-/* ============ REVEAL (progressive enhancement — visible without JS) ============ */
+/* ============ REVEAL ============ */
 .js .rv{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)}
 .js .rv.in{opacity:1;transform:none}
 
@@ -305,6 +365,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
   .step-body{padding-left:30px}
   .versus{grid-template-columns:1fr;gap:14px}
   .vs-mid{justify-self:center}
+  .why.span2{grid-column:span 1}
 }
 @media (max-width:620px){
   :root{--nav-h:56px}
@@ -315,16 +376,18 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
   .step-head{padding:22px 20px 18px;gap:15px}
   .step-num{width:40px;height:40px;font-size:14px}
   .step-body{padding:0 20px 24px}
+  .step-foot{padding:13px 20px}
   .card{padding:22px 20px}
   .t-a-in{padding-left:24px}
   .t-q{padding:16px 18px;font-size:14.5px;gap:11px}
   h1{font-size:clamp(2.1rem,10vw,2.9rem)}
   .prompt-body .txt{font-size:12.5px}
+  #toTop{right:16px;bottom:16px;width:40px;height:40px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   html{scroll-behavior:auto}
-  .rv{opacity:1;transform:none}
+  .js .rv{opacity:1;transform:none}
 }
 </style>
 </head>
@@ -339,7 +402,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 </div>
 <div id="progress"></div>
 
-<nav>
+<nav class="top">
   <div class="nav-in">
     <a href="#top" class="brand">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -352,10 +415,10 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
       <svg width="17" height="17" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
     <div class="nav-links" id="navLinks">
+      <a href="#fast-track">Fast track</a>
       <a href="#needs">Prereqs</a>
       <a href="#step-1">Steps</a>
       <a href="#troubleshooting">Troubleshooting</a>
-      <a href="#why">Why it's different</a>
       <a href="#step-1" class="cta">Start setup</a>
     </div>
   </div>
@@ -367,7 +430,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
     <div class="ring2"></div>
     <div class="core"></div>
   </div>
-  <div class="eyebrow"><span class="dot"></span>Full setup guide · 7 steps</div>
+  <div class="eyebrow"><span class="dot"></span>Full setup guide &middot; 7 steps</div>
   <h1>Build Your Own <span class="grad">Jarvis</span></h1>
   <p class="lede">Turn your laptop into a personal AI assistant that talks back, controls your apps, and works with the tools you already use. No subscriptions. Runs locally on your machine.</p>
   <div class="chips">
@@ -381,7 +444,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
     </span>
     <span class="chip">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9d7cff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-      30–45 minutes
+      30&ndash;45 minutes
     </span>
     <span class="chip">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M5 8l7-6 7 6"/></svg>
@@ -393,26 +456,64 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 <div class="wrap">
   <!-- ============ SIDEBAR ============ -->
   <aside id="tocAside">
-    <div class="toc-label">On this page</div>
+    <div class="toc-label" id="tocLabel">On this page</div>
+
+    <div class="prog-box">
+      <div class="prog-top">
+        <span class="lbl">Your progress</span>
+        <span class="val" id="progVal">0 / 8</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <button class="prog-reset" id="progReset">Reset progress</button>
+    </div>
+
     <nav class="toc" id="toc">
-      <a href="#needs"><span class="n">00</span>What you'll need</a>
-      <a href="#step-1"><span class="n">01</span>Pick your repo</a>
-      <a href="#step-2"><span class="n">02</span>Hand it to Claude Code</a>
-      <a href="#step-3"><span class="n">03</span>Test that it runs</a>
-      <a href="#step-4"><span class="n">04</span>Add a voice</a>
-      <a href="#step-5"><span class="n">05</span>Connect your tools</a>
-      <a href="#step-6"><span class="n">06</span>Build your commands</a>
-      <a href="#step-7"><span class="n">07</span>Make it yours</a>
+      <a href="#needs" data-step="needs"><span class="n">00</span><span class="tick">&#10003;</span>What you'll need</a>
+      <a href="#step-1" data-step="step-1"><span class="n">01</span><span class="tick">&#10003;</span>Pick your repo</a>
+      <a href="#step-2" data-step="step-2"><span class="n">02</span><span class="tick">&#10003;</span>Hand it to Claude Code</a>
+      <a href="#step-3" data-step="step-3"><span class="n">03</span><span class="tick">&#10003;</span>Test that it runs</a>
+      <a href="#step-4" data-step="step-4"><span class="n">04</span><span class="tick">&#10003;</span>Add a voice</a>
+      <a href="#step-5" data-step="step-5"><span class="n">05</span><span class="tick">&#10003;</span>Connect your tools</a>
+      <a href="#step-6" data-step="step-6"><span class="n">06</span><span class="tick">&#10003;</span>Build your commands</a>
+      <a href="#step-7" data-step="step-7"><span class="n">07</span><span class="tick">&#10003;</span>Make it yours</a>
       <a href="#troubleshooting"><span class="n">!</span>Troubleshooting</a>
-      <a href="#next"><span class="n">→</span>What to do next</a>
-      <a href="#why"><span class="n">◆</span>Why this is different</a>
+      <a href="#next"><span class="n">&rarr;</span>What to do next</a>
+      <a href="#why"><span class="n">&#9670;</span>Why this is different</a>
     </nav>
   </aside>
 
   <main>
 
+  <!-- ============ FAST TRACK ============ -->
+  <section id="fast-track" class="rv">
+    <div class="sec-head">
+      <div class="sec-kicker">Optional shortcut</div>
+      <h2>Fast track &mdash; let the script do it</h2>
+    </div>
+    <p>If you'd rather not type every command by hand, there's a setup script that handles the boring parts. It checks what you already have installed, clones your chosen repo, sets up the environment, and writes your config files.</p>
+    <p>It deliberately <strong>stops and asks you</strong> for the two things only you can do: your ElevenLabs API key, and the OAuth logins for your calendar and email. It never guesses at those.</p>
+
+    <p class="prompt-label">macOS / Linux / Git Bash</p>
+    <div class="prompt">
+      <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">terminal</span><button class="copy">Copy</button></div>
+      <div class="prompt-body"><span class="caret">$</span><span class="txt">chmod +x setup-jarvis.sh
+./setup-jarvis.sh</span></div>
+    </div>
+
+    <p class="prompt-label">Windows &mdash; PowerShell</p>
+    <div class="prompt">
+      <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">powershell</span><button class="copy">Copy</button></div>
+      <div class="prompt-body"><span class="caret">&gt;</span><span class="txt">powershell -ExecutionPolicy Bypass -File .\setup-jarvis.ps1</span></div>
+    </div>
+
+    <div class="tip">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v1M12 21v1M4.2 4.2l.7.7M19.1 19.1l.7.7M2 12h1M21 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4"/></svg>
+      <p><strong>Prefer to understand every step?</strong> Skip this and work through Steps 1&ndash;7 below. The script just automates what those steps describe &mdash; doing it by hand is the better way to learn it.</p>
+    </div>
+  </section>
+
   <!-- ============ PREREQS ============ -->
-  <section id="needs" class="rv">
+  <section id="needs" class="rv" data-step="needs">
     <div class="sec-head">
       <div class="sec-kicker">Before you start</div>
       <h2>What you'll need before you dive in</h2>
@@ -420,19 +521,24 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
     <p>Get these ready first. <strong>Skipping this step is the #1 reason setups break halfway through.</strong></p>
     <div class="card">
       <ul class="clean check">
-        <li><strong>A laptop</strong> — Mac, Windows, or Linux all work.</li>
-        <li><strong>Claude Code installed</strong> — the AI coding agent that handles the boring setup work for you. Download it from <a href="https://claude.com/claude-code" target="_blank" rel="noopener">claude.com/claude-code</a>.</li>
-        <li><strong>A GitHub account</strong> — free. Sign up at <a href="https://github.com" target="_blank" rel="noopener">github.com</a> if you don't have one.</li>
-        <li><strong>An ElevenLabs account</strong> — for the voice. The free tier is enough to start. Sign up at <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>.</li>
-        <li><strong>Node.js and Python installed</strong> — most repos need one or both. Claude Code will tell you if something is missing and can install it for you.</li>
-        <li><strong>About 30–45 minutes of quiet time.</strong></li>
+        <li><strong>A laptop</strong> &mdash; Mac, Windows, or Linux all work.</li>
+        <li><strong>Claude Code installed</strong> &mdash; the AI coding agent that handles the boring setup work for you. Download it from <a class="ext" href="https://claude.com/claude-code" target="_blank" rel="noopener">claude.com/claude-code</a>.</li>
+        <li><strong>A GitHub account</strong> &mdash; free. Sign up at <a class="ext" href="https://github.com" target="_blank" rel="noopener">github.com</a> if you don't have one.</li>
+        <li><strong>An ElevenLabs account</strong> &mdash; for the voice. The free tier is enough to start. Sign up at <a class="ext" href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>.</li>
+        <li><strong>Node.js and Python installed</strong> &mdash; most repos need one or both. Claude Code will tell you if something is missing and can install it for you.</li>
+        <li><strong>About 30&ndash;45 minutes of quiet time.</strong></li>
       </ul>
+    </div>
+    <div class="step-foot">
+      <span class="spacer"></span>
+      <button class="done-btn" data-mark="needs"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+      <a class="snav primary" href="#step-1">Start Step 1 &rarr;</a>
     </div>
   </section>
 
   <!-- ============ STEP 1 ============ -->
-  <section id="step-1" class="rv">
-    <div class="step">
+  <section id="step-1" class="rv" data-step="step-1">
+    <div class="step" data-stepcard="step-1">
       <div class="step-head">
         <div class="step-num">01</div>
         <div class="t">
@@ -450,19 +556,36 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 
         <h3 style="margin-top:26px">Which one should you pick?</h3>
         <div class="picks">
-          <div class="pick"><div class="want">Want it to control your computer?</div><div class="go">→ OpenInterpreter</div></div>
-          <div class="pick"><div class="want">Want it 100% local and private?</div><div class="go">→ LocalGPT</div></div>
-          <div class="pick"><div class="want">Want a voice-first assistant?</div><div class="go">→ Leon</div></div>
+          <div class="pick"><div class="want">Want it to control your computer?</div><div class="go">&rarr; OpenInterpreter</div></div>
+          <div class="pick"><div class="want">Want it 100% local and private?</div><div class="go">&rarr; LocalGPT</div></div>
+          <div class="pick"><div class="want">Want a voice-first assistant?</div><div class="go">&rarr; Leon</div></div>
         </div>
 
-        <p style="margin-top:22px">Once you pick, copy the GitHub repo link from the top of the repo page. It will look something like <code>https://github.com/OpenInterpreter/open-interpreter</code>.</p>
+        <p style="margin-top:22px">Once you pick, copy the GitHub repo link from the top of the repo page. It will look something like:</p>
+        <div class="prompt">
+          <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">example repo url</span><button class="copy">Copy</button></div>
+          <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt"><span class="url">https://github.com/OpenInterpreter/open-interpreter</span></span></div>
+        </div>
+        <p>Direct links to the four options:</p>
+        <ul class="clean">
+          <li><a class="ext" href="https://github.com/OpenInterpreter/open-interpreter" target="_blank" rel="noopener">OpenInterpreter</a> &mdash; controls your computer</li>
+          <li><a class="ext" href="https://github.com/microsoft/JARVIS" target="_blank" rel="noopener">Microsoft JARVIS / HuggingGPT</a> &mdash; multi-model orchestration</li>
+          <li><a class="ext" href="https://github.com/PromtEngineer/localGPT" target="_blank" rel="noopener">LocalGPT</a> &mdash; fully private</li>
+          <li><a class="ext" href="https://github.com/leon-ai/leon" target="_blank" rel="noopener">Leon</a> &mdash; voice-first</li>
+        </ul>
+      </div>
+      <div class="step-foot">
+        <a class="snav" href="#needs">&larr; Back</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-1"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#step-2">Step 2 &rarr;</a>
       </div>
     </div>
   </section>
 
   <!-- ============ STEP 2 ============ -->
-  <section id="step-2" class="rv">
-    <div class="step">
+  <section id="step-2" class="rv" data-step="step-2">
+    <div class="step" data-stepcard="step-2">
       <div class="step-head">
         <div class="step-num">02</div>
         <div class="t">
@@ -473,31 +596,37 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
       <div class="step-body">
         <div class="prompt">
           <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
-          <div class="prompt-body"><span class="caret">›</span><span class="txt">Clone this repo, install everything it needs, and get it running on my machine: <span class="url">https://github.com/OpenInterpreter/open-interpreter</span></span></div>
+          <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt">Clone this repo, install everything it needs, and get it running on my machine: <span class="url">https://github.com/OpenInterpreter/open-interpreter</span></span></div>
         </div>
 
         <p style="margin-top:22px">Claude will now do the boring part for you:</p>
         <ul class="clean">
           <li>Clone the repo into a folder on your computer.</li>
           <li>Read the README to figure out what's required.</li>
-          <li>Install dependencies — Python packages, Node modules, whatever the repo needs.</li>
+          <li>Install dependencies &mdash; Python packages, Node modules, whatever the repo needs.</li>
           <li>Set up a virtual environment if the project uses one.</li>
           <li>Run any initial setup scripts.</li>
         </ul>
 
-        <p>If it hits an error — missing tool, wrong version of Python, permission issue — it will tell you and usually fix it itself. You just watch.</p>
+        <p>If it hits an error &mdash; missing tool, wrong version of Python, permission issue &mdash; it will tell you and usually fix it itself. You just watch.</p>
 
         <div class="tip">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v1M12 21v1M4.2 4.2l.7.7M19.1 19.1l.7.7M2 12h1M21 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4"/></svg>
           <p><strong>Tip:</strong> Keep the terminal window open so you can see what it's doing. If it asks a question ("Install Homebrew?" "Overwrite this file?"), answer it.</p>
         </div>
       </div>
+      <div class="step-foot">
+        <a class="snav" href="#step-1">&larr; Step 1</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-2"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#step-3">Step 3 &rarr;</a>
+      </div>
     </div>
   </section>
 
   <!-- ============ STEP 3 ============ -->
-  <section id="step-3" class="rv">
-    <div class="step">
+  <section id="step-3" class="rv" data-step="step-3">
+    <div class="step" data-stepcard="step-3">
       <div class="step-head">
         <div class="step-num">03</div>
         <div class="t">
@@ -509,7 +638,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
         <p>Ask Claude:</p>
         <div class="prompt">
           <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
-          <div class="prompt-body"><span class="caret">›</span><span class="txt">Start the agent and let me talk to it.</span></div>
+          <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt">Start the agent and let me talk to it.</span></div>
         </div>
 
         <p>You should see the assistant boot up in the terminal (or a small window, depending on the repo). Type a test message like "What's the time?" and confirm it responds.</p>
@@ -517,17 +646,23 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 
         <div class="prompt">
           <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
-          <div class="prompt-body"><span class="caret">›</span><span class="txt">It's not responding. Here's the error: <span class="ph">[paste the error]</span>. Fix it.</span></div>
+          <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt">It's not responding. Here's the error: <span class="ph">[paste the error]</span>. Fix it.</span></div>
         </div>
 
-        <p>Claude will debug and re-run. This is normal — expect one or two rounds of fixing on any real setup.</p>
+        <p>Claude will debug and re-run. This is normal &mdash; expect one or two rounds of fixing on any real setup.</p>
+      </div>
+      <div class="step-foot">
+        <a class="snav" href="#step-2">&larr; Step 2</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-3"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#step-4">Step 4 &rarr;</a>
       </div>
     </div>
   </section>
 
   <!-- ============ STEP 4 ============ -->
-  <section id="step-4" class="rv">
-    <div class="step">
+  <section id="step-4" class="rv" data-step="step-4">
+    <div class="step" data-stepcard="step-4">
       <div class="step-head">
         <div class="step-num">04</div>
         <div class="t">
@@ -537,29 +672,29 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
       </div>
       <div class="step-body">
         <div class="sub">
-          <h4>4a · Get your ElevenLabs API key</h4>
+          <h4>4a &middot; Get your ElevenLabs API key</h4>
           <ol>
-            <li>Log in to <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>.</li>
-            <li>Click your profile icon (top right) → <strong>Profile + API key</strong>.</li>
-            <li>Copy the API key. Keep it somewhere safe — <strong>do not share it publicly</strong>.</li>
+            <li>Log in to <a class="ext" href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>.</li>
+            <li>Click your profile icon (top right) &rarr; <strong>Profile + API key</strong>.</li>
+            <li>Copy the API key. Keep it somewhere safe &mdash; <strong>do not share it publicly</strong>.</li>
           </ol>
         </div>
 
         <div class="sub">
-          <h4>4b · Pick a voice</h4>
+          <h4>4b &middot; Pick a voice</h4>
           <ol>
             <li>In ElevenLabs, go to <strong>VoiceLab</strong> or <strong>Voices</strong>.</li>
-            <li>Browse the library — pre-made voices (British, deep, calm, energetic) or clone your own.</li>
+            <li>Browse the library &mdash; pre-made voices (British, deep, calm, energetic) or clone your own.</li>
             <li>Pick one you like. Copy its <strong>Voice ID</strong> (small icon next to the voice name).</li>
           </ol>
         </div>
 
         <div class="sub">
-          <h4>4c · Tell Claude to wire it up</h4>
+          <h4>4c &middot; Tell Claude to wire it up</h4>
           <p style="margin-bottom:12px">Back in Claude Code, say:</p>
           <div class="prompt" style="margin:0">
             <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
-            <div class="prompt-body"><span class="caret">›</span><span class="txt">Add ElevenLabs voice output to the agent. Here's my API key: <span class="ph">[paste key]</span>. Here's the voice ID I want: <span class="ph">[paste voice ID]</span>. Make sure every response the agent gives is also spoken out loud.</span></div>
+            <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt">Add ElevenLabs voice output to the agent. Here's my API key: <span class="ph">[paste key]</span>. Here's the voice ID I want: <span class="ph">[paste voice ID]</span>. Make sure every response the agent gives is also spoken out loud.</span></div>
           </div>
         </div>
 
@@ -570,12 +705,18 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
           <p><strong>Tip:</strong> If you want the voice to sound more like the movie Jarvis, search ElevenLabs for a calm British male voice. Or clone your own and rename it "Jarvis."</p>
         </div>
       </div>
+      <div class="step-foot">
+        <a class="snav" href="#step-3">&larr; Step 3</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-4"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#step-5">Step 5 &rarr;</a>
+      </div>
     </div>
   </section>
 
   <!-- ============ STEP 5 ============ -->
-  <section id="step-5" class="rv">
-    <div class="step">
+  <section id="step-5" class="rv" data-step="step-5">
+    <div class="step" data-stepcard="step-5">
       <div class="step-head">
         <div class="step-num">05</div>
         <div class="t">
@@ -586,43 +727,49 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
       <div class="step-body">
         <p>Common connections worth setting up first:</p>
         <ul class="clean">
-          <li><strong>Calendar</strong> — Google Calendar, Apple Calendar, Outlook — so it can tell you what's on your schedule.</li>
-          <li><strong>Email</strong> — Gmail, Outlook — so it can triage your inbox and summarize what needs a reply.</li>
-          <li><strong>Files</strong> — a specific folder on your computer — so it can read, search, and summarize documents.</li>
-          <li><strong>Notion / Docs</strong> — so it can pull notes, meeting minutes, or project briefs.</li>
-          <li><strong>Slack / Discord</strong> — so it can catch you up on unread threads.</li>
+          <li><strong>Calendar</strong> &mdash; Google Calendar, Apple Calendar, Outlook &mdash; so it can tell you what's on your schedule.</li>
+          <li><strong>Email</strong> &mdash; Gmail, Outlook &mdash; so it can triage your inbox and summarize what needs a reply.</li>
+          <li><strong>Files</strong> &mdash; a specific folder on your computer &mdash; so it can read, search, and summarize documents.</li>
+          <li><strong>Notion / Docs</strong> &mdash; so it can pull notes, meeting minutes, or project briefs.</li>
+          <li><strong>Slack / Discord</strong> &mdash; so it can catch you up on unread threads.</li>
         </ul>
 
         <p>For each one, tell Claude what you want. Example:</p>
         <div class="prompt">
           <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
-          <div class="prompt-body"><span class="caret">›</span><span class="txt">Connect the agent to my Google Calendar. When I say "what's my day look like," I want it to read my events out loud.</span></div>
+          <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt">Connect the agent to my Google Calendar. When I say "what's my day look like," I want it to read my events out loud.</span></div>
         </div>
 
         <p>Claude will:</p>
         <ul class="clean">
           <li>Install the right library or MCP connector.</li>
-          <li>Walk you through the OAuth flow — you'll click a link, log in to Google, approve access.</li>
+          <li>Walk you through the OAuth flow &mdash; you'll click a link, log in to Google, approve access.</li>
           <li>Store the credentials safely on your machine.</li>
           <li>Add a command to the agent so it knows what to do when you ask.</li>
         </ul>
 
         <div class="tip">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v1M12 21v1M4.2 4.2l.7.7M19.1 19.1l.7.7M2 12h1M21 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4"/></svg>
-          <p><strong>Tip:</strong> Repeat for each tool. Add them one at a time — don't try to connect everything at once. Test each one before moving on.</p>
+          <p><strong>Tip:</strong> Repeat for each tool. Add them one at a time &mdash; don't try to connect everything at once. Test each one before moving on.</p>
         </div>
+      </div>
+      <div class="step-foot">
+        <a class="snav" href="#step-4">&larr; Step 4</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-5"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#step-6">Step 6 &rarr;</a>
       </div>
     </div>
   </section>
 
   <!-- ============ STEP 6 ============ -->
-  <section id="step-6" class="rv">
-    <div class="step">
+  <section id="step-6" class="rv" data-step="step-6">
+    <div class="step" data-stepcard="step-6">
       <div class="step-head">
         <div class="step-num">06</div>
         <div class="t">
           <h3>Build Your Own Commands</h3>
-          <p class="desc">Now customize. Think about the 3–5 things you actually do every morning, and make the agent do them.</p>
+          <p class="desc">Now customize. Think about the 3&ndash;5 things you actually do every morning, and make the agent do them.</p>
         </div>
       </div>
       <div class="step-body">
@@ -637,17 +784,23 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 
         <p style="margin-top:20px">Tell Claude what you want in plain English. It writes the command, wires it into the agent, and tests it.</p>
       </div>
+      <div class="step-foot">
+        <a class="snav" href="#step-5">&larr; Step 5</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-6"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#step-7">Step 7 &rarr;</a>
+      </div>
     </div>
   </section>
 
   <!-- ============ STEP 7 ============ -->
-  <section id="step-7" class="rv">
-    <div class="step">
+  <section id="step-7" class="rv" data-step="step-7">
+    <div class="step" data-stepcard="step-7">
       <div class="step-head">
         <div class="step-num">07</div>
         <div class="t">
           <h3>Make It Yours</h3>
-          <p class="desc">Small tweaks that make the agent feel personal — identity, personality, boundaries, and a startup phrase.</p>
+          <p class="desc">Small tweaks that make the agent feel personal &mdash; identity, personality, boundaries, and a startup phrase.</p>
         </div>
       </div>
       <div class="step-body">
@@ -660,10 +813,16 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 
         <div class="prompt">
           <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
-          <div class="prompt-body"><span class="caret">›</span><span class="txt">Update the agent's system prompt: your name is Jarvis, you are dry and slightly sarcastic, you never use exclamation marks, and you always confirm before deleting a file or sending an email.</span></div>
+          <div class="prompt-body"><span class="caret">&#8250;</span><span class="txt">Update the agent's system prompt: your name is Jarvis, you are dry and slightly sarcastic, you never use exclamation marks, and you always confirm before deleting a file or sending an email.</span></div>
         </div>
 
         <p>Tell Claude what you want. It edits the system prompt.</p>
+      </div>
+      <div class="step-foot">
+        <a class="snav" href="#step-6">&larr; Step 6</a>
+        <span class="spacer"></span>
+        <button class="done-btn" data-mark="step-7"><span class="box"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04121a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mark complete</button>
+        <a class="snav primary" href="#next">You're done &rarr;</a>
       </div>
     </div>
   </section>
@@ -672,7 +831,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
   <section id="troubleshooting" class="rv">
     <div class="sec-head">
       <div class="sec-kicker">When things break</div>
-      <h2>Troubleshooting — the common ones</h2>
+      <h2>Troubleshooting &mdash; the common ones</h2>
     </div>
     <p>Every one of these has a known fix. Click to expand.</p>
 
@@ -683,15 +842,15 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
       </div>
       <div class="t-item">
         <button class="t-q"><span class="warn">!</span>Permission denied<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
-        <div class="t-a"><div class="t-a-in"><p>On Mac/Linux, some installs need <code>sudo</code>. Claude will tell you when to type your password. <strong>Never paste your password into Claude</strong> — type it directly in the terminal when prompted.</p></div></div>
+        <div class="t-a"><div class="t-a-in"><p>On Mac/Linux, some installs need <code>sudo</code>. Claude will tell you when to type your password. <strong>Never paste your password into Claude</strong> &mdash; type it directly in the terminal when prompted.</p></div></div>
       </div>
       <div class="t-item">
         <button class="t-q"><span class="warn">!</span>Rate limit hit on ElevenLabs<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
-        <div class="t-a"><div class="t-a-in"><p>The free tier has a monthly character limit. Either upgrade, or switch to a local text-to-speech engine — Claude can wire up <strong>Piper</strong> or <strong>Coqui TTS</strong> instead. Both are free and run locally.</p></div></div>
+        <div class="t-a"><div class="t-a-in"><p>The free tier has a monthly character limit. Either upgrade, or switch to a local text-to-speech engine &mdash; Claude can wire up <strong>Piper</strong> or <strong>Coqui TTS</strong> instead. Both are free and run locally.</p></div></div>
       </div>
       <div class="t-item">
         <button class="t-q"><span class="warn">!</span>The agent responds but voice is silent<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
-        <div class="t-a"><div class="t-a-in"><p>Check your system audio output. Also confirm the ElevenLabs API key is valid by pasting it into a test call — Claude can do this in one line.</p></div></div>
+        <div class="t-a"><div class="t-a-in"><p>Check your system audio output. Also confirm the ElevenLabs API key is valid by pasting it into a test call &mdash; Claude can do this in one line.</p></div></div>
       </div>
       <div class="t-item">
         <button class="t-q"><span class="warn">!</span>It works today, breaks tomorrow<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
@@ -710,7 +869,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
     <div class="nsteps">
       <div class="nstep"><span class="nn">01</span><div><h4>Add more connectors</h4><p>Every tool you connect makes the agent more useful. Start with your top 3 apps.</p></div></div>
       <div class="nstep"><span class="nn">02</span><div><h4>Run it as a background service</h4><p>So it starts automatically when you boot your laptop. Ask Claude to set this up.</p></div></div>
-      <div class="nstep"><span class="nn">03</span><div><h4>Give it a wake word</h4><p>So you can say "Hey Jarvis" instead of typing. This needs a small extra library — Claude can wire it up.</p></div></div>
+      <div class="nstep"><span class="nn">03</span><div><h4>Give it a wake word</h4><p>So you can say "Hey Jarvis" instead of typing. This needs a small extra library &mdash; Claude can wire it up.</p></div></div>
       <div class="nstep"><span class="nn">04</span><div><h4>Back up your config</h4><p>Push your customized version to your own private GitHub repo. If your laptop dies, you can restore your Jarvis in 10 minutes.</p></div></div>
     </div>
   </section>
@@ -728,7 +887,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
         <div class="lbl">Chatbot era</div>
         <div class="big">"I ask, it answers."</div>
       </div>
-      <div class="vs-mid">→</div>
+      <div class="vs-mid">&rarr;</div>
       <div class="vs-col new">
         <div class="lbl">Agent era</div>
         <div class="big">"I ask, it does."</div>
@@ -752,7 +911,7 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2a3 3 0 1 0 0 5.6"/></svg>
         <div><strong>Costs nothing</strong>Beyond the tools you already pay for.</div>
       </div>
-      <div class="why">
+      <div class="why span2">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><path d="m8 6-6 6 6 6M16 6l6 6-6 6"/></svg>
         <div><strong>Is fully yours</strong>Read the code, change the code, and no company can quietly change the rules.</div>
       </div>
@@ -762,9 +921,13 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
   </main>
 </div>
 
+<button id="toTop" aria-label="Back to top">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
 <footer>
-  <p class="fnote">Setup guide built for the Jarvis reel — save this doc, come back to it, and share it with anyone who wants their own.</p>
-  <p class="fmono">BUILD YOUR OWN JARVIS · NO SUBSCRIPTIONS · RUNS LOCALLY · FREE &amp; OPEN SOURCE</p>
+  <p class="fnote">Setup guide built for the Jarvis reel &mdash; save this doc, come back to it, and share it with anyone who wants their own.</p>
+  <p class="fmono">BUILD YOUR OWN JARVIS &middot; NO SUBSCRIPTIONS &middot; RUNS LOCALLY &middot; FREE &amp; OPEN SOURCE</p>
 </footer>
 
 <script>
@@ -773,10 +936,13 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
 
   /* ---------- Progress bar ---------- */
   var bar = document.getElementById('progress');
+  var toTop = document.getElementById('toTop');
   function onScroll(){
     var h = document.documentElement;
     var max = h.scrollHeight - h.clientHeight;
-    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    bar.style.width = pct + '%';
+    toTop.classList.toggle('on', h.scrollTop > 600);
   }
   window.addEventListener('scroll', onScroll, {passive:true});
   onScroll();
@@ -789,20 +955,24 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
     if(e.target.tagName === 'A') navLinks.classList.remove('show');
   });
 
-  /* ---------- Sidebar toggle on small screens ---------- */
+  /* ---------- Sidebar collapse on small screens ---------- */
   var aside = document.getElementById('tocAside');
-  if(window.matchMedia('(max-width:1080px)').matches){ aside.classList.add('collapsed'); }
-  var tocLabel = aside.querySelector('.toc-label');
+  var tocLabel = document.getElementById('tocLabel');
+  var mq = window.matchMedia('(max-width:1080px)');
+  if(mq.matches){ aside.classList.add('collapsed'); tocLabel.textContent = 'On this page  \u25B8'; }
   tocLabel.style.cursor = 'pointer';
   tocLabel.addEventListener('click', function(){
-    if(!window.matchMedia('(max-width:1080px)').matches) return;
+    if(!mq.matches) return;
     aside.classList.toggle('collapsed');
-    tocLabel.textContent = aside.classList.contains('collapsed') ? 'On this page  ▸' : 'On this page  ▾';
+    tocLabel.textContent = aside.classList.contains('collapsed') ? 'On this page  \u25B8' : 'On this page  \u25BE';
   });
 
   /* ---------- Scroll spy ---------- */
   var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
-  var targets = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  var targets = links.map(function(a){
+    var id = a.getAttribute('href');
+    return id && id.charAt(0) === '#' ? document.querySelector(id) : null;
+  }).filter(Boolean);
 
   function spy(){
     var y = window.scrollY + 140;
@@ -824,7 +994,6 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
       });
     }, {rootMargin:'0px 0px -8% 0px', threshold:0.04});
     rvs.forEach(function(el){ io.observe(el); });
-    /* Failsafe: if the observer never fires, reveal everything rather than hide content */
     setTimeout(function(){
       if(!document.querySelector('.rv.in')){
         rvs.forEach(function(el){ el.classList.add('in'); });
@@ -835,6 +1004,16 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
   }
 
   /* ---------- Copy buttons ---------- */
+  function fallbackCopy(text, cb){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); cb(); }catch(e){}
+    document.body.removeChild(ta);
+  }
   document.querySelectorAll('.prompt').forEach(function(p){
     var btn = p.querySelector('.copy');
     var txt = p.querySelector('.txt');
@@ -847,20 +1026,10 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
         setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
       };
       if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(raw).then(done, function(){ fallback(raw, done); });
-      } else { fallback(raw, done); }
+        navigator.clipboard.writeText(raw).then(done, function(){ fallbackCopy(raw, done); });
+      } else { fallbackCopy(raw, done); }
     });
   });
-  function fallback(text, cb){
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try{ document.execCommand('copy'); cb(); }catch(e){}
-    document.body.removeChild(ta);
-  }
 
   /* ---------- Accordion ---------- */
   document.querySelectorAll('.t-item').forEach(function(item){
@@ -877,6 +1046,69 @@ footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);l
         a.style.maxHeight = a.scrollHeight + 'px';
       }
     });
+  });
+
+  /* ---------- Step checklist (persisted) ---------- */
+  var STORE = 'jarvis-guide-progress-v1';
+  var STEPS = ['needs','step-1','step-2','step-3','step-4','step-5','step-6','step-7'];
+  var state = {};
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE);
+      return raw ? (JSON.parse(raw) || {}) : {};
+    }catch(e){ return {}; }
+  }
+  function save(){
+    try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){}
+  }
+
+  var progVal = document.getElementById('progVal');
+  var progFill = document.getElementById('progFill');
+
+  function render(){
+    var done = 0;
+    STEPS.forEach(function(id){
+      var on = !!state[id];
+      if(on) done++;
+
+      var link = document.querySelector('#toc a[data-step="' + id + '"]');
+      if(link) link.classList.toggle('done', on);
+
+      var card = document.querySelector('.step[data-stepcard="' + id + '"]');
+      if(card) card.classList.toggle('complete', on);
+
+      var btn = document.querySelector('.done-btn[data-mark="' + id + '"]');
+      if(btn){
+        btn.classList.toggle('on', on);
+        btn.lastChild.nodeValue = on ? ' Completed' : ' Mark complete';
+      }
+    });
+    progVal.textContent = done + ' / ' + STEPS.length;
+    progFill.style.width = (done / STEPS.length * 100) + '%';
+  }
+
+  document.querySelectorAll('.done-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = btn.getAttribute('data-mark');
+      state[id] = !state[id];
+      save();
+      render();
+    });
+  });
+
+  document.getElementById('progReset').addEventListener('click', function(){
+    state = {};
+    save();
+    render();
+  });
+
+  state = load();
+  render();
+
+  /* ---------- Back to top ---------- */
+  toTop.addEventListener('click', function(){
+    window.scrollTo({top:0, behavior:'smooth'});
   });
 })();
 </script>
