@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Your Own Jarvis — Full Setup Guide</title>
+<meta name="description" content="Turn your laptop into a personal AI assistant that talks back, controls your apps, and works with the tools you already use. No subscriptions. Runs locally. 100% free and open source.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='38' fill='none' stroke='%2322d3ee' stroke-width='7'/><circle cx='50' cy='50' r='13' fill='%2322d3ee'/></svg>">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#05080f;
+  --bg-2:#080d18;
+  --panel:#0c1421;
+  --panel-2:#101a2b;
+  --line:rgba(120,190,255,.13);
+  --line-strong:rgba(120,190,255,.26);
+  --text:#dde7f5;
+  --text-dim:#93a6c0;
+  --text-faint:#61748f;
+  --cyan:#22d3ee;
+  --cyan-soft:#67e8f9;
+  --blue:#4c8dff;
+  --violet:#9d7cff;
+  --amber:#fbbf24;
+  --green:#34d399;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 24px 60px -24px rgba(0,0,0,.85);
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --nav-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 24px);-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:rgba(34,211,238,.3);color:#fff}
+
+/* ============ AMBIENT BACKDROP ============ */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-layer .grid{
+  position:absolute;inset:-10%;
+  background-image:
+    linear-gradient(rgba(120,190,255,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(120,190,255,.055) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 10%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 10%,transparent 75%);
+}
+.glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5}
+.glow.a{width:640px;height:640px;top:-260px;left:-140px;background:radial-gradient(circle,rgba(34,211,238,.5),transparent 68%)}
+.glow.b{width:560px;height:560px;top:-160px;right:-160px;background:radial-gradient(circle,rgba(124,92,255,.42),transparent 68%)}
+.glow.c{width:700px;height:700px;bottom:-420px;left:35%;background:radial-gradient(circle,rgba(76,141,255,.22),transparent 70%)}
+
+/* ============ PROGRESS ============ */
+#progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:100;
+  background:linear-gradient(90deg,var(--cyan),var(--blue),var(--violet));
+  box-shadow:0 0 14px rgba(34,211,238,.9);transition:width .08s linear}
+
+/* ============ NAV ============ */
+nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:90;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  background:rgba(5,8,15,.72);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1400px;margin:0 auto;height:100%;padding:0 28px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.02em;font-size:15px;text-decoration:none;color:var(--text);white-space:nowrap}
+.brand svg{flex:none}
+.brand .sub{color:var(--text-faint);font-weight:500;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em}
+.nav-links{display:flex;gap:4px;margin-left:auto;align-items:center}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:13.5px;font-weight:500;padding:7px 13px;border-radius:8px;transition:.18s;white-space:nowrap}
+.nav-links a:hover{color:var(--text);background:rgba(120,190,255,.08)}
+.nav-links a.cta{color:#04121a;background:linear-gradient(135deg,var(--cyan),var(--blue));font-weight:600;box-shadow:0 0 22px -6px rgba(34,211,238,.7)}
+.nav-links a.cta:hover{filter:brightness(1.12)}
+#menuBtn{display:none;margin-left:auto;background:none;border:1px solid var(--line-strong);color:var(--text);border-radius:8px;padding:7px 10px;cursor:pointer}
+
+/* ============ HERO ============ */
+header{position:relative;z-index:1;padding:calc(var(--nav-h) + 92px) 28px 84px;max-width:1100px;margin:0 auto;text-align:center}
+.reactor{width:104px;height:104px;margin:0 auto 34px;position:relative}
+.reactor .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(34,211,238,.35);
+  background:conic-gradient(from 0deg,transparent 0 62%,rgba(34,211,238,.85) 76%,transparent 88%);
+  animation:spin 7s linear infinite;
+  mask:radial-gradient(circle,transparent 60%,#000 62%);
+  -webkit-mask:radial-gradient(circle,transparent 60%,#000 62%)}
+.reactor .ring2{position:absolute;inset:13px;border-radius:50%;border:1px dashed rgba(157,124,255,.45);animation:spin 13s linear infinite reverse}
+.reactor .core{position:absolute;inset:30px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#fff,var(--cyan-soft) 30%,var(--blue) 72%);
+  box-shadow:0 0 26px rgba(34,211,238,.95),0 0 62px rgba(34,211,238,.5);
+  animation:pulse 3.2s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.85}}
+
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11.5px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--cyan-soft);
+  border:1px solid rgba(34,211,238,.28);background:rgba(34,211,238,.06);
+  padding:7px 15px;border-radius:99px;margin-bottom:26px}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulse 2s infinite}
+h1{font-size:clamp(2.5rem,6.4vw,4.6rem);line-height:1.03;font-weight:800;letter-spacing:-.038em;margin-bottom:24px}
+h1 .grad{background:linear-gradient(112deg,#fff 8%,var(--cyan-soft) 42%,var(--blue) 68%,var(--violet) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:clamp(1.02rem,1.7vw,1.22rem);color:var(--text-dim);max-width:730px;margin:0 auto 34px;line-height:1.72}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--text-dim);
+  border:1px solid var(--line);background:rgba(12,20,33,.75);padding:8px 15px;border-radius:99px}
+.chip svg{flex:none}
+
+/* ============ LAYOUT ============ */
+.wrap{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 28px 120px;
+  display:grid;grid-template-columns:242px minmax(0,1fr);gap:56px;align-items:start}
+aside{position:sticky;top:calc(var(--nav-h) + 28px);max-height:calc(100vh - var(--nav-h) - 56px);
+  overflow-y:auto;padding-right:6px;scrollbar-width:thin}
+aside::-webkit-scrollbar{width:5px}
+aside::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:9px}
+.toc-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--text-faint);padding:0 12px;margin-bottom:14px}
+.toc a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;text-decoration:none;
+  color:var(--text-faint);font-size:13.5px;line-height:1.35;transition:.16s;border-left:2px solid transparent}
+.toc a .n{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);min-width:19px;transition:.16s}
+.toc a:hover{color:var(--text-dim);background:rgba(120,190,255,.06)}
+.toc a.on{color:var(--cyan-soft);background:rgba(34,211,238,.09);border-left-color:var(--cyan)}
+.toc a.on .n{color:var(--cyan)}
+main{min-width:0}
+
+/* ============ SECTIONS ============ */
+section{margin-bottom:72px;scroll-margin-top:calc(var(--nav-h) + 24px)}
+.sec-head{margin-bottom:26px}
+.sec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:11px;display:flex;align-items:center;gap:10px}
+.sec-kicker::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-strong),transparent)}
+h2{font-size:clamp(1.5rem,3.1vw,2.05rem);font-weight:700;letter-spacing:-.028em;line-height:1.2}
+h3{font-size:1.1rem;font-weight:650;letter-spacing:-.015em;margin-bottom:10px}
+p{color:var(--text-dim);margin-bottom:15px}
+p strong,li strong{color:var(--text);font-weight:600}
+a{color:var(--cyan-soft);text-decoration:none;border-bottom:1px solid rgba(103,232,249,.28);transition:.16s}
+a:hover{color:#fff;border-bottom-color:#fff}
+code{font-family:var(--mono);font-size:.855em;background:rgba(120,190,255,.1);
+  border:1px solid var(--line);padding:2px 6px;border-radius:5px;color:var(--cyan-soft);
+  overflow-wrap:anywhere;word-break:break-word}
+
+/* ============ CARDS ============ */
+.card{background:linear-gradient(165deg,var(--panel),var(--bg-2));
+  border:1px solid var(--line);border-radius:var(--radius);padding:28px 30px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(34,211,238,.5),transparent)}
+.card + .card{margin-top:18px}
+.card.flush{padding:0}
+
+/* ============ STEP ============ */
+.step{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  background:linear-gradient(165deg,var(--panel),var(--bg-2));position:relative}
+.step + .step{margin-top:22px}
+.step::before{content:"";position:absolute;top:0;left:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,var(--cyan),var(--blue) 45%,transparent)}
+.step-head{display:flex;gap:20px;align-items:flex-start;padding:26px 30px 22px}
+.step-num{flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:15px;font-weight:600;color:var(--cyan-soft);
+  background:linear-gradient(150deg,rgba(34,211,238,.19),rgba(76,141,255,.07));
+  border:1px solid rgba(34,211,238,.32);box-shadow:inset 0 0 22px rgba(34,211,238,.14)}
+.step-head .t{flex:1;min-width:0}
+.step-head h3{font-size:1.24rem;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+.step-head .desc{color:var(--text-dim);font-size:14.5px;margin:0}
+.step-body{padding:0 30px 28px 96px}
+
+/* ============ PROMPT BLOCK ============ */
+.prompt{background:#070c15;border:1px solid var(--line-strong);border-radius:var(--radius-sm);
+  margin:18px 0;overflow:hidden;box-shadow:var(--shadow)}
+.prompt-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;
+  background:rgba(120,190,255,.05);border-bottom:1px solid var(--line)}
+.prompt-bar .dots{display:flex;gap:5px}
+.prompt-bar .dots i{width:9px;height:9px;border-radius:50%;display:block}
+.prompt-bar .dots i:nth-child(1){background:#ff5f57}
+.prompt-bar .dots i:nth-child(2){background:#febc2e}
+.prompt-bar .dots i:nth-child(3){background:#28c840}
+.prompt-bar .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-faint);margin-left:6px}
+.copy{margin-left:auto;background:rgba(120,190,255,.09);border:1px solid var(--line);
+  color:var(--text-dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+  padding:4px 10px;border-radius:6px;cursor:pointer;transition:.16s}
+.copy:hover{color:var(--cyan-soft);border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.12)}
+.copy.done{color:var(--green);border-color:rgba(52,211,153,.5)}
+.prompt-body{padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
+.prompt-body .caret{font-family:var(--mono);color:var(--cyan);font-size:14px;line-height:1.72;flex:none;user-select:none}
+.prompt-body .txt{font-family:var(--mono);font-size:13.5px;line-height:1.72;color:#c9dcf2;
+  white-space:pre-wrap;word-break:break-word;flex:1}
+.prompt-body .txt .url{color:var(--violet)}
+.prompt-body .txt .ph{color:var(--amber)}
+
+/* ============ LISTS ============ */
+ul.clean{list-style:none;margin:14px 0}
+ul.clean li{position:relative;padding-left:26px;margin-bottom:11px;color:var(--text-dim);font-size:15px}
+ul.clean li::before{content:"";position:absolute;left:6px;top:11px;width:6px;height:6px;border-radius:2px;
+  background:var(--cyan);box-shadow:0 0 9px rgba(34,211,238,.8);transform:rotate(45deg)}
+ul.check li::before{content:"";left:4px;top:10px;width:5px;height:9px;border:solid var(--green);
+  border-width:0 2px 2px 0;background:none;box-shadow:none;transform:rotate(42deg);border-radius:0}
+
+/* ============ REPO GRID ============ */
+.repos{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:20px 0}
+.repo{background:rgba(120,190,255,.045);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:17px 18px;transition:.2s}
+.repo:hover{border-color:var(--line-strong);background:rgba(120,190,255,.08);transform:translateY(-2px)}
+.repo .nm{font-weight:650;color:var(--text);font-size:14.5px;margin-bottom:7px;display:block}
+.repo .ds{font-size:13px;color:var(--text-faint);line-height:1.6}
+
+/* ============ PICK / DECISION ============ */
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:20px 0}
+.pick{background:linear-gradient(160deg,rgba(34,211,238,.09),rgba(120,190,255,.03));
+  border:1px solid rgba(34,211,238,.2);border-radius:var(--radius-sm);padding:17px 18px}
+.pick .want{font-size:13px;color:var(--text-faint);margin-bottom:7px}
+.pick .go{font-weight:650;color:var(--cyan-soft);font-size:14.5px;font-family:var(--mono)}
+
+/* ============ TIP ============ */
+.tip{display:flex;gap:13px;background:linear-gradient(120deg,rgba(251,191,36,.1),rgba(251,191,36,.03));
+  border:1px solid rgba(251,191,36,.26);border-radius:var(--radius-sm);padding:15px 17px;margin:18px 0}
+.tip svg{flex:none;margin-top:2px}
+.tip p{margin:0;font-size:14px;color:#e8d9ae}
+.tip strong{color:var(--amber)}
+
+/* ============ SUB BLOCK ============ */
+.sub{background:rgba(120,190,255,.035);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:18px 20px;margin:16px 0}
+.sub h4{font-size:13.5px;font-weight:650;color:var(--cyan-soft);margin-bottom:12px;
+  font-family:var(--mono);letter-spacing:.05em}
+.sub ol{margin-left:18px;color:var(--text-dim);font-size:14.5px}
+.sub ol li{margin-bottom:8px;padding-left:4px}
+.sub ol li::marker{color:var(--cyan);font-family:var(--mono);font-size:12px}
+
+/* ============ TROUBLE ============ */
+.trouble{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg-2)}
+.t-item{border-bottom:1px solid var(--line)}
+.t-item:last-child{border-bottom:none}
+.t-q{width:100%;text-align:left;background:none;border:none;cursor:pointer;color:var(--text);
+  font-family:var(--sans);font-size:15px;font-weight:600;padding:19px 24px;
+  display:flex;align-items:center;gap:14px;transition:.16s}
+.t-q:hover{background:rgba(120,190,255,.05)}
+.t-q .warn{flex:none;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;
+  background:rgba(251,191,36,.13);border:1px solid rgba(251,191,36,.3);color:var(--amber);font-size:12px;font-family:var(--mono)}
+.t-q .arw{margin-left:auto;flex:none;color:var(--text-faint);transition:.25s;font-size:12px}
+.t-item.open .t-q .arw{transform:rotate(90deg);color:var(--cyan)}
+.js .t-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.js .t-item.open .t-a{overflow:hidden}
+.t-a-in{padding:0 24px 22px 62px;color:var(--text-dim);font-size:14.5px}
+.t-a-in p:last-child{margin-bottom:0}
+
+/* ============ WHY ============ */
+.versus{display:grid;grid-template-columns:1fr auto 1fr;gap:22px;align-items:center;margin:26px 0}
+.vs-col{border-radius:var(--radius);padding:24px 26px;border:1px solid var(--line);background:var(--bg-2)}
+.vs-col.old{opacity:.72}
+.vs-col.new{border-color:rgba(34,211,238,.3);background:linear-gradient(160deg,rgba(34,211,238,.09),var(--bg-2))}
+.vs-col .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:12px}
+.vs-col.new .lbl{color:var(--cyan)}
+.vs-col .big{font-size:1.12rem;font-weight:650;color:var(--text);line-height:1.4;letter-spacing:-.015em}
+.vs-mid{font-family:var(--mono);font-size:12px;color:var(--text-faint);text-align:center;
+  border:1px solid var(--line);border-radius:99px;padding:7px 12px;background:var(--panel)}
+
+.why-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:26px}
+.why{display:flex;gap:12px;padding:16px 17px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:rgba(120,190,255,.035);font-size:14px;color:var(--text-dim)}
+.why svg{flex:none;margin-top:3px}
+.why strong{color:var(--text);display:block;margin-bottom:2px;font-size:14.5px}
+
+/* ============ NEXT STEPS ============ */
+.nsteps{display:grid;gap:14px}
+.nstep{display:flex;gap:18px;padding:20px 22px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:linear-gradient(120deg,rgba(120,190,255,.05),transparent);transition:.2s}
+.nstep:hover{border-color:var(--line-strong);transform:translateX(3px)}
+.nstep .nn{flex:none;font-family:var(--mono);font-size:19px;font-weight:600;
+  background:linear-gradient(140deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.3}
+.nstep h4{font-size:15px;font-weight:650;margin-bottom:5px;color:var(--text)}
+.nstep p{margin:0;font-size:14px;color:var(--text-dim)}
+
+/* ============ FOOTER ============ */
+footer{position:relative;z-index:1;border-top:1px solid var(--line);
+  background:linear-gradient(180deg,transparent,rgba(34,211,238,.045));padding:52px 28px 62px;text-align:center}
+footer .fnote{max-width:640px;margin:0 auto 20px;color:var(--text-dim);font-size:14.5px}
+footer .fmono{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);letter-spacing:.09em}
+
+/* ============ REVEAL (progressive enhancement — visible without JS) ============ */
+.js .rv{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)}
+.js .rv.in{opacity:1;transform:none}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1080px){
+  .wrap{grid-template-columns:1fr;gap:0}
+  aside{position:static;max-height:none;overflow:visible;margin-bottom:44px;
+    border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;background:var(--bg-2)}
+  aside.collapsed{display:none}
+  .toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px}
+  #menuBtn{display:block}
+  .nav-links{position:fixed;top:var(--nav-h);left:0;right:0;flex-direction:column;align-items:stretch;
+    gap:2px;padding:14px 18px 20px;background:rgba(6,10,18,.98);border-bottom:1px solid var(--line-strong);
+    display:none;backdrop-filter:blur(20px)}
+  .nav-links.show{display:flex}
+  .nav-links a{padding:11px 13px;font-size:14.5px}
+  .nav-links a.cta{text-align:center;margin-top:6px}
+  .step-body{padding-left:30px}
+  .versus{grid-template-columns:1fr;gap:14px}
+  .vs-mid{justify-self:center}
+}
+@media (max-width:620px){
+  :root{--nav-h:56px}
+  .wrap{padding:0 18px 84px}
+  header{padding:calc(var(--nav-h) + 58px) 18px 62px}
+  .nav-in{padding:0 18px}
+  .brand .sub{display:none}
+  .step-head{padding:22px 20px 18px;gap:15px}
+  .step-num{width:40px;height:40px;font-size:14px}
+  .step-body{padding:0 20px 24px}
+  .card{padding:22px 20px}
+  .t-a-in{padding-left:24px}
+  .t-q{padding:16px 18px;font-size:14.5px;gap:11px}
+  h1{font-size:clamp(2.1rem,10vw,2.9rem)}
+  .prompt-body .txt{font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.className += " js";</script>
+
+<div class="bg-layer">
+  <div class="grid"></div>
+  <div class="glow a"></div>
+  <div class="glow b"></div>
+  <div class="glow c"></div>
+</div>
+<div id="progress"></div>
+
+<nav>
+  <div class="nav-in">
+    <a href="#top" class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9.2" stroke="#22d3ee" stroke-width="1.4" opacity=".55"/>
+        <circle cx="12" cy="12" r="4" fill="#22d3ee"/>
+      </svg>
+      Build Your Own Jarvis <span class="sub">/ setup guide</span>
+    </a>
+    <button id="menuBtn" aria-label="Toggle navigation">
+      <svg width="17" height="17" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="#needs">Prereqs</a>
+      <a href="#step-1">Steps</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#why">Why it's different</a>
+      <a href="#step-1" class="cta">Start setup</a>
+    </div>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="reactor">
+    <div class="ring"></div>
+    <div class="ring2"></div>
+    <div class="core"></div>
+  </div>
+  <div class="eyebrow"><span class="dot"></span>Full setup guide · 7 steps</div>
+  <h1>Build Your Own <span class="grad">Jarvis</span></h1>
+  <p class="lede">Turn your laptop into a personal AI assistant that talks back, controls your apps, and works with the tools you already use. No subscriptions. Runs locally on your machine.</p>
+  <div class="chips">
+    <span class="chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+      100% free &amp; open source
+    </span>
+    <span class="chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
+      Runs on your machine
+    </span>
+    <span class="chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9d7cff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      30–45 minutes
+    </span>
+    <span class="chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M5 8l7-6 7 6"/></svg>
+      No cloud required
+    </span>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ============ SIDEBAR ============ -->
+  <aside id="tocAside">
+    <div class="toc-label">On this page</div>
+    <nav class="toc" id="toc">
+      <a href="#needs"><span class="n">00</span>What you'll need</a>
+      <a href="#step-1"><span class="n">01</span>Pick your repo</a>
+      <a href="#step-2"><span class="n">02</span>Hand it to Claude Code</a>
+      <a href="#step-3"><span class="n">03</span>Test that it runs</a>
+      <a href="#step-4"><span class="n">04</span>Add a voice</a>
+      <a href="#step-5"><span class="n">05</span>Connect your tools</a>
+      <a href="#step-6"><span class="n">06</span>Build your commands</a>
+      <a href="#step-7"><span class="n">07</span>Make it yours</a>
+      <a href="#troubleshooting"><span class="n">!</span>Troubleshooting</a>
+      <a href="#next"><span class="n">→</span>What to do next</a>
+      <a href="#why"><span class="n">◆</span>Why this is different</a>
+    </nav>
+  </aside>
+
+  <main>
+
+  <!-- ============ PREREQS ============ -->
+  <section id="needs" class="rv">
+    <div class="sec-head">
+      <div class="sec-kicker">Before you start</div>
+      <h2>What you'll need before you dive in</h2>
+    </div>
+    <p>Get these ready first. <strong>Skipping this step is the #1 reason setups break halfway through.</strong></p>
+    <div class="card">
+      <ul class="clean check">
+        <li><strong>A laptop</strong> — Mac, Windows, or Linux all work.</li>
+        <li><strong>Claude Code installed</strong> — the AI coding agent that handles the boring setup work for you. Download it from <a href="https://claude.com/claude-code" target="_blank" rel="noopener">claude.com/claude-code</a>.</li>
+        <li><strong>A GitHub account</strong> — free. Sign up at <a href="https://github.com" target="_blank" rel="noopener">github.com</a> if you don't have one.</li>
+        <li><strong>An ElevenLabs account</strong> — for the voice. The free tier is enough to start. Sign up at <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>.</li>
+        <li><strong>Node.js and Python installed</strong> — most repos need one or both. Claude Code will tell you if something is missing and can install it for you.</li>
+        <li><strong>About 30–45 minutes of quiet time.</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ STEP 1 ============ -->
+  <section id="step-1" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">01</div>
+        <div class="t">
+          <h3>Pick Your Jarvis Repo</h3>
+          <p class="desc">Several open-source "Jarvis-style" agent repos exist on GitHub. Choose the one that matches what you actually want.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="repos">
+          <div class="repo"><span class="nm">OpenInterpreter</span><span class="ds">Runs code and controls your computer through natural language.</span></div>
+          <div class="repo"><span class="nm">Jarvis / HuggingGPT</span><span class="ds">Multi-model AI orchestration, originally from Microsoft.</span></div>
+          <div class="repo"><span class="nm">LocalGPT / PrivateGPT</span><span class="ds">Fully local, private assistants. Nothing leaves your machine.</span></div>
+          <div class="repo"><span class="nm">Leon</span><span class="ds">Open-source personal assistant with voice built in.</span></div>
+        </div>
+
+        <h3 style="margin-top:26px">Which one should you pick?</h3>
+        <div class="picks">
+          <div class="pick"><div class="want">Want it to control your computer?</div><div class="go">→ OpenInterpreter</div></div>
+          <div class="pick"><div class="want">Want it 100% local and private?</div><div class="go">→ LocalGPT</div></div>
+          <div class="pick"><div class="want">Want a voice-first assistant?</div><div class="go">→ Leon</div></div>
+        </div>
+
+        <p style="margin-top:22px">Once you pick, copy the GitHub repo link from the top of the repo page. It will look something like <code>https://github.com/OpenInterpreter/open-interpreter</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2 ============ -->
+  <section id="step-2" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">02</div>
+        <div class="t">
+          <h3>Open Claude Code and Hand It the Repo</h3>
+          <p class="desc">Open Claude Code in your terminal. Paste the repo link and tell it what you want, in plain English.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="prompt">
+          <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
+          <div class="prompt-body"><span class="caret">›</span><span class="txt">Clone this repo, install everything it needs, and get it running on my machine: <span class="url">https://github.com/OpenInterpreter/open-interpreter</span></span></div>
+        </div>
+
+        <p style="margin-top:22px">Claude will now do the boring part for you:</p>
+        <ul class="clean">
+          <li>Clone the repo into a folder on your computer.</li>
+          <li>Read the README to figure out what's required.</li>
+          <li>Install dependencies — Python packages, Node modules, whatever the repo needs.</li>
+          <li>Set up a virtual environment if the project uses one.</li>
+          <li>Run any initial setup scripts.</li>
+        </ul>
+
+        <p>If it hits an error — missing tool, wrong version of Python, permission issue — it will tell you and usually fix it itself. You just watch.</p>
+
+        <div class="tip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v1M12 21v1M4.2 4.2l.7.7M19.1 19.1l.7.7M2 12h1M21 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4"/></svg>
+          <p><strong>Tip:</strong> Keep the terminal window open so you can see what it's doing. If it asks a question ("Install Homebrew?" "Overwrite this file?"), answer it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3 ============ -->
+  <section id="step-3" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">03</div>
+        <div class="t">
+          <h3>Test That It Runs</h3>
+          <p class="desc">Once Claude Code says setup is done, run the agent and confirm it actually answers you.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Ask Claude:</p>
+        <div class="prompt">
+          <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
+          <div class="prompt-body"><span class="caret">›</span><span class="txt">Start the agent and let me talk to it.</span></div>
+        </div>
+
+        <p>You should see the assistant boot up in the terminal (or a small window, depending on the repo). Type a test message like "What's the time?" and confirm it responds.</p>
+        <p>If it doesn't respond, tell Claude:</p>
+
+        <div class="prompt">
+          <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
+          <div class="prompt-body"><span class="caret">›</span><span class="txt">It's not responding. Here's the error: <span class="ph">[paste the error]</span>. Fix it.</span></div>
+        </div>
+
+        <p>Claude will debug and re-run. This is normal — expect one or two rounds of fixing on any real setup.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 4 ============ -->
+  <section id="step-4" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">04</div>
+        <div class="t">
+          <h3>Add a Voice with ElevenLabs</h3>
+          <p class="desc">This is the fun part. Right now your agent replies in text. Let's give it a voice.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub">
+          <h4>4a · Get your ElevenLabs API key</h4>
+          <ol>
+            <li>Log in to <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>.</li>
+            <li>Click your profile icon (top right) → <strong>Profile + API key</strong>.</li>
+            <li>Copy the API key. Keep it somewhere safe — <strong>do not share it publicly</strong>.</li>
+          </ol>
+        </div>
+
+        <div class="sub">
+          <h4>4b · Pick a voice</h4>
+          <ol>
+            <li>In ElevenLabs, go to <strong>VoiceLab</strong> or <strong>Voices</strong>.</li>
+            <li>Browse the library — pre-made voices (British, deep, calm, energetic) or clone your own.</li>
+            <li>Pick one you like. Copy its <strong>Voice ID</strong> (small icon next to the voice name).</li>
+          </ol>
+        </div>
+
+        <div class="sub">
+          <h4>4c · Tell Claude to wire it up</h4>
+          <p style="margin-bottom:12px">Back in Claude Code, say:</p>
+          <div class="prompt" style="margin:0">
+            <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
+            <div class="prompt-body"><span class="caret">›</span><span class="txt">Add ElevenLabs voice output to the agent. Here's my API key: <span class="ph">[paste key]</span>. Here's the voice ID I want: <span class="ph">[paste voice ID]</span>. Make sure every response the agent gives is also spoken out loud.</span></div>
+          </div>
+        </div>
+
+        <p>Claude will edit the code, add the ElevenLabs SDK, and route the agent's text responses through their text-to-speech API. Restart the agent and it should now speak.</p>
+
+        <div class="tip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v1M12 21v1M4.2 4.2l.7.7M19.1 19.1l.7.7M2 12h1M21 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4"/></svg>
+          <p><strong>Tip:</strong> If you want the voice to sound more like the movie Jarvis, search ElevenLabs for a calm British male voice. Or clone your own and rename it "Jarvis."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 5 ============ -->
+  <section id="step-5" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">05</div>
+        <div class="t">
+          <h3>Connect Your Own Tools</h3>
+          <p class="desc">This is where it stops being a toy and starts being useful. Connect the agent to the apps you already use.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Common connections worth setting up first:</p>
+        <ul class="clean">
+          <li><strong>Calendar</strong> — Google Calendar, Apple Calendar, Outlook — so it can tell you what's on your schedule.</li>
+          <li><strong>Email</strong> — Gmail, Outlook — so it can triage your inbox and summarize what needs a reply.</li>
+          <li><strong>Files</strong> — a specific folder on your computer — so it can read, search, and summarize documents.</li>
+          <li><strong>Notion / Docs</strong> — so it can pull notes, meeting minutes, or project briefs.</li>
+          <li><strong>Slack / Discord</strong> — so it can catch you up on unread threads.</li>
+        </ul>
+
+        <p>For each one, tell Claude what you want. Example:</p>
+        <div class="prompt">
+          <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
+          <div class="prompt-body"><span class="caret">›</span><span class="txt">Connect the agent to my Google Calendar. When I say "what's my day look like," I want it to read my events out loud.</span></div>
+        </div>
+
+        <p>Claude will:</p>
+        <ul class="clean">
+          <li>Install the right library or MCP connector.</li>
+          <li>Walk you through the OAuth flow — you'll click a link, log in to Google, approve access.</li>
+          <li>Store the credentials safely on your machine.</li>
+          <li>Add a command to the agent so it knows what to do when you ask.</li>
+        </ul>
+
+        <div class="tip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"><path d="M12 2v1M12 21v1M4.2 4.2l.7.7M19.1 19.1l.7.7M2 12h1M21 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4"/></svg>
+          <p><strong>Tip:</strong> Repeat for each tool. Add them one at a time — don't try to connect everything at once. Test each one before moving on.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 6 ============ -->
+  <section id="step-6" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">06</div>
+        <div class="t">
+          <h3>Build Your Own Commands</h3>
+          <p class="desc">Now customize. Think about the 3–5 things you actually do every morning, and make the agent do them.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Examples people build:</p>
+        <div class="repos" style="grid-template-columns:1fr">
+          <div class="repo"><span class="nm">"Good morning"</span><span class="ds">Reads today's calendar, your top 3 unread important emails, and the weather.</span></div>
+          <div class="repo"><span class="nm">"Inbox status"</span><span class="ds">Tells you how many unread emails, which ones are from important senders, and which are still waiting for your reply.</span></div>
+          <div class="repo"><span class="nm">"Standup mode"</span><span class="ds">Summarizes what you did yesterday from your calendar and commits, then asks what you're doing today.</span></div>
+          <div class="repo"><span class="nm">"Focus mode"</span><span class="ds">Mutes Slack, blocks distracting websites for 90 minutes, and starts a timer.</span></div>
+          <div class="repo"><span class="nm">"Wind down"</span><span class="ds">Reads tomorrow's first meeting, dims your screen, and plays a calm playlist.</span></div>
+        </div>
+
+        <p style="margin-top:20px">Tell Claude what you want in plain English. It writes the command, wires it into the agent, and tests it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 7 ============ -->
+  <section id="step-7" class="rv">
+    <div class="step">
+      <div class="step-head">
+        <div class="step-num">07</div>
+        <div class="t">
+          <h3>Make It Yours</h3>
+          <p class="desc">Small tweaks that make the agent feel personal — identity, personality, boundaries, and a startup phrase.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="repos" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+          <div class="repo"><span class="nm">Give it a name</span><span class="ds">In the agent's system prompt, tell it "Your name is Jarvis" (or Friday, or whatever). Every response will use that identity.</span></div>
+          <div class="repo"><span class="nm">Give it a personality</span><span class="ds">"You are dry, slightly sarcastic, and never use exclamation marks." Or "You are warm, encouraging, and always suggest one small next step."</span></div>
+          <div class="repo"><span class="nm">Set boundaries</span><span class="ds">"Never send an email without asking me first." "Always confirm before deleting a file."</span></div>
+          <div class="repo"><span class="nm">Add a startup phrase</span><span class="ds">"When you boot up, say: 'Good morning. I've been waiting.'"</span></div>
+        </div>
+
+        <div class="prompt">
+          <div class="prompt-bar"><span class="dots"><i></i><i></i><i></i></span><span class="tag">prompt</span><button class="copy">Copy</button></div>
+          <div class="prompt-body"><span class="caret">›</span><span class="txt">Update the agent's system prompt: your name is Jarvis, you are dry and slightly sarcastic, you never use exclamation marks, and you always confirm before deleting a file or sending an email.</span></div>
+        </div>
+
+        <p>Tell Claude what you want. It edits the system prompt.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TROUBLESHOOTING ============ -->
+  <section id="troubleshooting" class="rv">
+    <div class="sec-head">
+      <div class="sec-kicker">When things break</div>
+      <h2>Troubleshooting — the common ones</h2>
+    </div>
+    <p>Every one of these has a known fix. Click to expand.</p>
+
+    <div class="trouble" id="trouble">
+      <div class="t-item">
+        <button class="t-q"><span class="warn">!</span>Command not found: python / node / npm<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <div class="t-a"><div class="t-a-in"><p>Claude will install the missing runtime for you. Just say: <em>"I'm missing [tool]. Please install it."</em></p></div></div>
+      </div>
+      <div class="t-item">
+        <button class="t-q"><span class="warn">!</span>Permission denied<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <div class="t-a"><div class="t-a-in"><p>On Mac/Linux, some installs need <code>sudo</code>. Claude will tell you when to type your password. <strong>Never paste your password into Claude</strong> — type it directly in the terminal when prompted.</p></div></div>
+      </div>
+      <div class="t-item">
+        <button class="t-q"><span class="warn">!</span>Rate limit hit on ElevenLabs<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <div class="t-a"><div class="t-a-in"><p>The free tier has a monthly character limit. Either upgrade, or switch to a local text-to-speech engine — Claude can wire up <strong>Piper</strong> or <strong>Coqui TTS</strong> instead. Both are free and run locally.</p></div></div>
+      </div>
+      <div class="t-item">
+        <button class="t-q"><span class="warn">!</span>The agent responds but voice is silent<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <div class="t-a"><div class="t-a-in"><p>Check your system audio output. Also confirm the ElevenLabs API key is valid by pasting it into a test call — Claude can do this in one line.</p></div></div>
+      </div>
+      <div class="t-item">
+        <button class="t-q"><span class="warn">!</span>It works today, breaks tomorrow<svg class="arw" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <div class="t-a"><div class="t-a-in"><p>Repos update. If something suddenly stops working, tell Claude: <em>"The agent worked yesterday but now throws this error: [paste]. Pull the latest repo changes and fix it."</em></p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NEXT ============ -->
+  <section id="next" class="rv">
+    <div class="sec-head">
+      <div class="sec-kicker">Level up</div>
+      <h2>What to do next</h2>
+    </div>
+    <p>You now have a working local AI assistant. To take it further:</p>
+    <div class="nsteps">
+      <div class="nstep"><span class="nn">01</span><div><h4>Add more connectors</h4><p>Every tool you connect makes the agent more useful. Start with your top 3 apps.</p></div></div>
+      <div class="nstep"><span class="nn">02</span><div><h4>Run it as a background service</h4><p>So it starts automatically when you boot your laptop. Ask Claude to set this up.</p></div></div>
+      <div class="nstep"><span class="nn">03</span><div><h4>Give it a wake word</h4><p>So you can say "Hey Jarvis" instead of typing. This needs a small extra library — Claude can wire it up.</p></div></div>
+      <div class="nstep"><span class="nn">04</span><div><h4>Back up your config</h4><p>Push your customized version to your own private GitHub repo. If your laptop dies, you can restore your Jarvis in 10 minutes.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ============ WHY ============ -->
+  <section id="why" class="rv">
+    <div class="sec-head">
+      <div class="sec-kicker">The point</div>
+      <h2>Why this is actually different from a chatbot</h2>
+    </div>
+    <p>The point of this setup is not "another AI to chat with." The point is an assistant that lives on your machine, not in a browser tab.</p>
+
+    <div class="versus">
+      <div class="vs-col old">
+        <div class="lbl">Chatbot era</div>
+        <div class="big">"I ask, it answers."</div>
+      </div>
+      <div class="vs-mid">→</div>
+      <div class="vs-col new">
+        <div class="lbl">Agent era</div>
+        <div class="big">"I ask, it does."</div>
+      </div>
+    </div>
+
+    <div class="why-list">
+      <div class="why">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg>
+        <div><strong>Lives on your machine</strong>Not in a browser tab.</div>
+      </div>
+      <div class="why">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><path d="M3 7h18M3 12h18M3 17h12"/></svg>
+        <div><strong>Sees your real tools</strong>And your real data.</div>
+      </div>
+      <div class="why">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 12.5a10 10 0 0 1 20 0"/><circle cx="12" cy="18" r="1.4" fill="#22d3ee"/></svg>
+        <div><strong>Runs offline</strong>If you pick a local model.</div>
+      </div>
+      <div class="why">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2a3 3 0 1 0 0 5.6"/></svg>
+        <div><strong>Costs nothing</strong>Beyond the tools you already pay for.</div>
+      </div>
+      <div class="why">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><path d="m8 6-6 6 6 6M16 6l6 6-6 6"/></svg>
+        <div><strong>Is fully yours</strong>Read the code, change the code, and no company can quietly change the rules.</div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<footer>
+  <p class="fnote">Setup guide built for the Jarvis reel — save this doc, come back to it, and share it with anyone who wants their own.</p>
+  <p class="fmono">BUILD YOUR OWN JARVIS · NO SUBSCRIPTIONS · RUNS LOCALLY · FREE &amp; OPEN SOURCE</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Progress bar ---------- */
+  var bar = document.getElementById('progress');
+  function onScroll(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- Mobile nav ---------- */
+  var menuBtn = document.getElementById('menuBtn');
+  var navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', function(){ navLinks.classList.toggle('show'); });
+  navLinks.addEventListener('click', function(e){
+    if(e.target.tagName === 'A') navLinks.classList.remove('show');
+  });
+
+  /* ---------- Sidebar toggle on small screens ---------- */
+  var aside = document.getElementById('tocAside');
+  if(window.matchMedia('(max-width:1080px)').matches){ aside.classList.add('collapsed'); }
+  var tocLabel = aside.querySelector('.toc-label');
+  tocLabel.style.cursor = 'pointer';
+  tocLabel.addEventListener('click', function(){
+    if(!window.matchMedia('(max-width:1080px)').matches) return;
+    aside.classList.toggle('collapsed');
+    tocLabel.textContent = aside.classList.contains('collapsed') ? 'On this page  ▸' : 'On this page  ▾';
+  });
+
+  /* ---------- Scroll spy ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var targets = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+
+  function spy(){
+    var y = window.scrollY + 140;
+    var active = 0;
+    for(var i=0;i<targets.length;i++){
+      if(targets[i].offsetTop <= y) active = i;
+    }
+    links.forEach(function(a,i){ a.classList.toggle('on', i === active); });
+  }
+  window.addEventListener('scroll', spy, {passive:true});
+  spy();
+
+  /* ---------- Reveal on scroll ---------- */
+  var rvs = document.querySelectorAll('.rv');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:0.04});
+    rvs.forEach(function(el){ io.observe(el); });
+    /* Failsafe: if the observer never fires, reveal everything rather than hide content */
+    setTimeout(function(){
+      if(!document.querySelector('.rv.in')){
+        rvs.forEach(function(el){ el.classList.add('in'); });
+      }
+    }, 2000);
+  } else {
+    rvs.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* ---------- Copy buttons ---------- */
+  document.querySelectorAll('.prompt').forEach(function(p){
+    var btn = p.querySelector('.copy');
+    var txt = p.querySelector('.txt');
+    if(!btn || !txt) return;
+    btn.addEventListener('click', function(){
+      var raw = txt.innerText.trim();
+      var done = function(){
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(raw).then(done, function(){ fallback(raw, done); });
+      } else { fallback(raw, done); }
+    });
+  });
+  function fallback(text, cb){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); cb(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  /* ---------- Accordion ---------- */
+  document.querySelectorAll('.t-item').forEach(function(item){
+    var q = item.querySelector('.t-q');
+    var a = item.querySelector('.t-a');
+    q.addEventListener('click', function(){
+      var open = item.classList.contains('open');
+      document.querySelectorAll('.t-item.open').forEach(function(o){
+        o.classList.remove('open');
+        o.querySelector('.t-a').style.maxHeight = null;
+      });
+      if(!open){
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

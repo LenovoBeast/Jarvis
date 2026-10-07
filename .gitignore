@@ -1,0 +1,12 @@
+# Internal WorkBuddy project state (memory, session data) — not part of the published project
+.workbuddy-ai/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+
+# Local scratch
+/tmp/
+*.log

@@ -1,0 +1,8 @@
+# Normalize line endings in the repo; check out LF everywhere.
+# These are web files — CRLF in HTML/CSS/JS is pure churn.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.woff2 binary
